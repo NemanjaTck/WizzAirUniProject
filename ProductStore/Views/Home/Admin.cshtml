@@ -1,0 +1,98 @@
+﻿@model WizzAir.Models.SpecialOffer
+
+@{
+    ViewBag.Title = "Admin";
+}
+
+@section Scripts {
+  @Scripts.Render("~/bundles/jqueryval")
+  <script type="text/javascript" src="@Url.Content("~/Scripts/knockout-2.1.0.js")"></script> 
+  <script type="text/javascript">
+      function SpecialOffersViewModel() {
+          var self = this;
+          self.specialOffers = ko.observableArray();
+
+          var baseUri = '@ViewBag.ApiUrl';
+
+          self.create = function (formElement) {
+              // If valid, post the serialized form data to the web api
+              $(formElement).validate();
+              if ($(formElement).valid()) {
+                  $.post(baseUri, $(formElement).serialize(), null, "json")
+                      .done(function (o) { self.specialOffers.push(o); });
+              }
+          }
+
+          self.update = function (specialOffer) {
+              $.ajax({ type: "PUT", url: baseUri + '/' + specialOffer.Id, data: specialOffer });
+          }
+
+          self.remove = function (specialOffer) {
+              // First remove from the server, then from the UI
+              $.ajax({ type: "DELETE", url: baseUri + '/' + specialOffer.Id })
+                  .done(function () { self.specialOffers.remove(specialOffer); });
+          }
+
+          $.getJSON(baseUri, self.specialOffers);
+      }
+
+      $(document).ready(function () {
+          ko.applyBindings(new SpecialOffersViewModel());
+      })
+  </script>
+}
+
+<h2>Admin</h2>
+<div class="content">
+    <div class="float-left">
+        <ul id="update-specialOffers" data-bind="foreach: specialOffers">
+            <li>
+                <div>
+                    <div class="item">SpecialOffer ID</div> <span data-bind="text: $data.Id"></span>
+                </div>
+                <div>
+                    <div class="item">Name</div> 
+                    <input type="text" data-bind="value: $data.Name"/>
+                </div> 
+                <div>
+                    <div class="item">Place</div> 
+                    <input type="text" data-bind="value: $data.Place"/>
+                </div>
+                <div>
+                    <div class="item">Points</div>
+                    <input type="text" data-bind="value: $data.Points" />
+                </div>
+                <div>
+                    <div class="item">Wins</div>
+                    <input type="text" data-bind="value: $data.Wins" />
+                </div>
+                <div>
+                    <div class="item">Loses</div>
+                    <input type="text" data-bind="value: $data.Loses" />
+                </div>
+                <div>
+                    <div class="item">Average Points</div>
+                    <input type="text" data-bind="value: $data.AvgPoints" />
+                </div>
+                <div>
+                    <input type="button" value="Update" data-bind="click: $root.update"/>
+                    <input type="button" value="Delete Item" data-bind="click: $root.remove"/>
+                </div>
+            </li>
+        </ul>
+    </div>
+
+    <div class="float-right">
+    <h2>Add New SpecialOffer</h2>
+    <form id="specialOffer"  data-bind="submit: create">
+        @Html.ValidationSummary(true)
+        <fieldset>
+            <legend>Contact</legend>
+            @Html.EditorForModel()
+            <p>
+                <input type="submit" value="Save" />
+            </p>
+        </fieldset>
+    </form>
+    </div>
+</div>
